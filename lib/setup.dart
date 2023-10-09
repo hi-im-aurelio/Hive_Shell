@@ -1,6 +1,28 @@
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:hive/hive.dart';
+import 'package:path/path.dart' as p;
+
+Future<void> listData(String boxPath) async {
+  print('Listando dados para a box em: $boxPath');
+
+  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
+
+  if (box.isNotEmpty) {
+    print('\n${box.name}:.');
+
+    var keysList = box.keys.toList();
+    for (var i = 0; i < keysList.length; i++) {
+      var key = keysList[i];
+      var lastItemSymbol = i == keysList.length - 1 ? '└───' : '├───';
+      print('$lastItemSymbol $key = ${box.get(key)}');
+    }
+  } else {
+    print('A box "${box.name}" está vazia.');
+  }
+
+  print('\n');
+}
 
 Future<void> listBoxes(String collectionName) async {
   print('Listando caixas para: $collectionName');
@@ -14,15 +36,6 @@ void setup(List<String> args) async {
       help: 'Caminho para o arquivo .hive.',
     );
 
-  final cmdParser = ArgParser();
-
-  var boxesCommand = cmdParser.addCommand('boxes');
-  boxesCommand.addOption(
-    'collection',
-    abbr: 'c',
-    help: 'Nome da BoxCollection para listar as caixas.',
-  );
-
   final results = parser.parse(args);
 
   if (results['path'] == null) {
@@ -31,7 +44,15 @@ void setup(List<String> args) async {
     exit(1);
   }
 
-  Hive.init(results['path'] as String);
+  // ==========================================================
+
+  final cmdParser = ArgParser();
+
+  cmdParser.addCommand('datas');
+
+  String path = results['path'] as String;
+
+  Hive.init(p.dirname(path));
 
   while (true) {
     stdout.write('h-shell?> ');
@@ -44,14 +65,8 @@ void setup(List<String> args) async {
 
     final cmdResults = cmdParser.parse(line.split(' '));
 
-    if (cmdResults.command?.name == 'boxes') {
-      final collectionName = cmdResults.command?['collection'];
-      if (collectionName != null) {
-        await listBoxes(collectionName as String);
-      } else {
-        print(
-            'Por favor, forneça o nome da BoxCollection usando -c ou --collection.');
-      }
+    if (cmdResults.command?.name == 'datas') {
+      await listData(results['path'] as String);
     } else {
       print('Comando desconhecido.');
     }
