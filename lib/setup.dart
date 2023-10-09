@@ -3,6 +3,16 @@ import 'package:args/args.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 
+Future<void> addData(String boxPath, String key, String value) async {
+  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
+
+  box.put(key, value);
+
+  print('\n${box.name}:.');
+  print('└─── Dado adicionado com sucesso!');
+  print('\n');
+}
+
 Future<void> listData(String boxPath) async {
   print('Listando dados para a box em: $boxPath');
 
@@ -22,10 +32,6 @@ Future<void> listData(String boxPath) async {
   }
 
   print('\n');
-}
-
-Future<void> listBoxes(String collectionName) async {
-  print('Listando caixas para: $collectionName');
 }
 
 void setup(List<String> args) async {
@@ -50,6 +56,10 @@ void setup(List<String> args) async {
 
   cmdParser.addCommand('datas');
 
+  var addCommand = cmdParser.addCommand('add');
+  addCommand.addOption('key', abbr: 'k', help: 'Chave para o novo dado.');
+  addCommand.addOption('value', abbr: 'v', help: 'Valor associado à chave.');
+
   String path = results['path'] as String;
 
   Hive.init(p.dirname(path));
@@ -67,6 +77,15 @@ void setup(List<String> args) async {
 
     if (cmdResults.command?.name == 'datas') {
       await listData(results['path'] as String);
+    } else if (cmdResults.command?.name == 'add') {
+      var key = cmdResults.command?['key'];
+      var value = cmdResults.command?['value'];
+
+      if (key != null && value != null) {
+        await addData(results['path'] as String, key, value);
+      } else {
+        print('Por favor, forneça uma chave e um valor para adicionar.');
+      }
     } else {
       print('Comando desconhecido.');
     }
