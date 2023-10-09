@@ -22,11 +22,17 @@ Future<void> deleteData(String boxPath, String key) async {
 Future<void> addData(String boxPath, String key, String value) async {
   final box = await Hive.openBox(p.basename(boxPath).split('.').first);
 
-  box.put(key, value);
-
-  print('\n${box.name}:.');
-  print('└─── Dado adicionado com sucesso!');
-  print('\n');
+  if (box.containsKey(key)) {
+    print('\n${box.name}:.');
+    print(
+        '└─── Erro: A chave "$key" já existe. Use o comando de atualização se desejar modificar o valor.');
+    print('\n');
+  } else {
+    box.put(key, value);
+    print('\n${box.name}:.');
+    print('└─── Dado adicionado com sucesso!');
+    print('\n');
+  }
 }
 
 Future<void> listData(String boxPath) async {
