@@ -3,6 +3,22 @@ import 'package:args/args.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 
+Future<void> deleteData(String boxPath, String key) async {
+  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
+
+  if (box.containsKey(key)) {
+    await box.delete(key);
+
+    print('\n${box.name}:.');
+    print('└─── Dado com a chave "$key" foi removido com sucesso.');
+    print('\n');
+  } else {
+    print('\n${box.name}:.');
+    print('└─── Não foi encontrada nenhuma entrada com a chave "$key".');
+    print('\n');
+  }
+}
+
 Future<void> addData(String boxPath, String key, String value) async {
   final box = await Hive.openBox(p.basename(boxPath).split('.').first);
 
@@ -60,6 +76,10 @@ void setup(List<String> args) async {
   addCommand.addOption('key', abbr: 'k', help: 'Chave para o novo dado.');
   addCommand.addOption('value', abbr: 'v', help: 'Valor associado à chave.');
 
+  var deleteCommand = cmdParser.addCommand('delete');
+  deleteCommand.addOption('key',
+      abbr: 'k', help: 'Chave do dado a ser removido.');
+
   String path = results['path'] as String;
 
   Hive.init(p.dirname(path));
@@ -85,6 +105,14 @@ void setup(List<String> args) async {
         await addData(results['path'] as String, key, value);
       } else {
         print('Por favor, forneça uma chave e um valor para adicionar.');
+      }
+    } else if (cmdResults.command?.name == 'delete') {
+      var key = cmdResults.command?['key'];
+
+      if (key != null) {
+        await deleteData(results['path'] as String, key);
+      } else {
+        print('Por favor, forneça uma chave para remover o dado.');
       }
     } else {
       print('Comando desconhecido.');
