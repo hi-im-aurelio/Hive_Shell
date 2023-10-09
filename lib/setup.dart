@@ -19,6 +19,21 @@ Future<void> deleteData(String boxPath, String key) async {
   }
 }
 
+Future<void> updateData(String boxPath, String key, String newValue) async {
+  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
+
+  if (box.containsKey(key)) {
+    box.put(key, newValue);
+    print('\n${box.name}:.');
+    print('└─── Dado com a chave "$key" foi atualizado com sucesso.');
+    print('\n');
+  } else {
+    print('\n${box.name}:.');
+    print('└─── Não foi encontrada nenhuma entrada com a chave "$key".');
+    print('\n');
+  }
+}
+
 Future<void> addData(String boxPath, String key, String value) async {
   final box = await Hive.openBox(p.basename(boxPath).split('.').first);
 
@@ -82,6 +97,12 @@ void setup(List<String> args) async {
   addCommand.addOption('key', abbr: 'k', help: 'Chave para o novo dado.');
   addCommand.addOption('value', abbr: 'v', help: 'Valor associado à chave.');
 
+  var updateCommand = cmdParser.addCommand('update');
+  updateCommand.addOption('key',
+      abbr: 'k', help: 'Chave do dado a ser atualizado.');
+  updateCommand.addOption('value',
+      abbr: 'v', help: 'Novo valor para a chave especificada.');
+
   var deleteCommand = cmdParser.addCommand('delete');
   deleteCommand.addOption('key',
       abbr: 'k', help: 'Chave do dado a ser removido.');
@@ -111,6 +132,15 @@ void setup(List<String> args) async {
         await addData(results['path'] as String, key, value);
       } else {
         print('Por favor, forneça uma chave e um valor para adicionar.');
+      }
+    } else if (cmdResults.command?.name == 'update') {
+      var key = cmdResults.command?['key'];
+      var value = cmdResults.command?['value'];
+
+      if (key != null && value != null) {
+        await updateData(results['path'] as String, key, value);
+      } else {
+        print('Por favor, forneça uma chave e um novo valor para atualizar.');
       }
     } else if (cmdResults.command?.name == 'delete') {
       var key = cmdResults.command?['key'];
