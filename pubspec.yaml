@@ -1,4 +1,4 @@
-name: hive_command_tool
+name: hive_shell
 description: A sample command-line application.
 version: 1.0.0
 # repository: https://github.com/my_org/my_repo
@@ -8,7 +8,9 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  args: ^2.4.2
   hive: ^2.2.3
+  path_provider: ^2.1.1
   # path: ^1.8.0
 
 dev_dependencies:

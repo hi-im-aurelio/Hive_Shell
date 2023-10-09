@@ -1,4 +1,4 @@
-import 'package:hive_command_tool/hive_command_tool.dart';
+import 'package:hive_shell/hive_command_tool.dart';
 import 'package:test/test.dart';
 
 void main() {
