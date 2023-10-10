@@ -3,182 +3,75 @@ import 'package:args/args.dart';
 import 'package:hive/hive.dart';
 import 'package:path/path.dart' as p;
 
-Future<void> restoreFromBackup(String boxPath, [String? backupPath]) async {
-  final defaultBackupPath = p.join(
-      p.dirname(boxPath), "${p.basenameWithoutExtension(boxPath)}_backup.hive");
-  final restorePath = backupPath ?? defaultBackupPath;
-
-  if (!File(restorePath).existsSync()) {
-    print('\n?:.');
-    print('└─── Backup não encontrado em $restorePath.');
-    print('\n');
-    return;
-  }
-
-  try {
-    // TODO: Atualmente, a restauração do backup substitui completamente o arquivo original.
-    // Posso implementar uma abordagem de "mesclagem" em vez de substituição direta.
-
-    // nota: Isso exigiria uma lógica definida para determinar como os dados devem ser mesclados.
-
-    // Por exemplo, em caso de conflitos entre os dados do backup e os originais,
-    // preciso decidir qual conjunto de dados teria prioridade.
-
-    final originalFile = File(boxPath);
-    if (originalFile.existsSync()) {
-      originalFile.deleteSync();
-    }
-
-    File(restorePath).copySync(boxPath);
-    print('\n?:.');
-    print('└─── Backup restaurado com sucesso de $restorePath para $boxPath.');
-  } catch (e) {
-    print('\n?:.');
-    print('└─── Erro ao restaurar o backup: $e');
-    print('\n');
-  }
-}
-
-Future<void> backupBox(String boxPath, [String? destDir]) async {
-  final backupLocation = destDir ?? p.dirname(boxPath);
-  final backupFileName = "${p.basenameWithoutExtension(boxPath)}_backup.hive";
-  final backupFilePath = p.join(backupLocation, backupFileName);
-
-  final boxFile = File(boxPath);
-  if (await boxFile.exists()) {
-    await boxFile.copy(backupFilePath);
-    print('\n?:.');
-    print('└─── Backup criado em: $backupFilePath');
-    print('\n');
-  } else {
-    print('\n?:.');
-    print('└─── Erro: Não foi possível encontrar a caixa.');
-    print('\n');
-  }
-}
-
-Future<void> deleteData(String boxPath, String key) async {
-  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
-
-  if (box.containsKey(key)) {
-    await box.delete(key);
-
-    print('\n${box.name}:.');
-    print('└─── Dado com a chave "$key" foi removido com sucesso.');
-    print('\n');
-  } else {
-    print('\n${box.name}:.');
-    print('└─── Não foi encontrada nenhuma entrada com a chave "$key".');
-    print('\n');
-  }
-}
-
-Future<void> updateData(String boxPath, String key, String newValue) async {
-  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
-
-  if (box.containsKey(key)) {
-    box.put(key, newValue);
-    print('\n${box.name}:.');
-    print('└─── Dado com a chave "$key" foi atualizado com sucesso.');
-    print('\n');
-  } else {
-    print('\n${box.name}:.');
-    print('└─── Não foi encontrada nenhuma entrada com a chave "$key".');
-    print('\n');
-  }
-}
-
-Future<void> addData(String boxPath, String key, String value) async {
-  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
-
-  if (box.containsKey(key)) {
-    print('\n${box.name}:.');
-    print(
-        '└─── Erro: A chave "$key" já existe. Use o comando de atualização se desejar modificar o valor.');
-    print('\n');
-  } else {
-    box.put(key, value);
-    print('\n${box.name}:.');
-    print('└─── Dado adicionado com sucesso!');
-    print('\n');
-  }
-}
-
-Future<void> listData(String boxPath) async {
-  print('Listando dados para a box em: $boxPath');
-
-  final box = await Hive.openBox(p.basename(boxPath).split('.').first);
-
-  if (box.isNotEmpty) {
-    print('\n${box.name}:.');
-
-    var keysList = box.keys.toList();
-    for (var i = 0; i < keysList.length; i++) {
-      var key = keysList[i];
-      var lastItemSymbol = i == keysList.length - 1 ? '└───' : '├───';
-      print('$lastItemSymbol $key = ${box.get(key)}');
-    }
-  } else {
-    print('A box "${box.name}" está vazia.');
-  }
-
-  print('\n');
-}
+import 'source/local_interaction.dart';
+import 'source/device_interaction.dart';
 
 void setup(List<String> args) async {
-  final parser = ArgParser()
-    ..addOption(
-      'path',
-      abbr: 'p',
-      help: 'Caminho para o arquivo .hive.',
-    );
+  bool testHiveFileThatIsOnTheAndroidDevice = false;
+
+  final parser = ArgParser();
+
+  parser.addOption('path', abbr: 'p', help: 'Path to the .hive file.');
+  parser.addOption('org', abbr: 'o', help: 'App package name (organization).');
+  parser.addOption('boxname',
+      abbr: 'b', help: 'Name of the box to be managed.');
 
   final results = parser.parse(args);
 
-  if (results['path'] == null) {
-    print(
-        'Por favor, forneça um caminho para o arquivo .hive usando -p ou --path.');
-    exit(1);
-  }
+  String? path = results['path'] as String?;
+  String? org = results['org'] as String?;
+  String? boxName = results['boxname'] as String?;
 
-  // ==========================================================
+  if (path == null) {
+    testHiveFileThatIsOnTheAndroidDevice =
+        true; // o --path só poderá ser ignorado por um motivo.
+    if (org != null && boxName != null) {
+      path = await getDeviceFilePath(org, boxName);
+    } else {
+      print('Please provide a --path or use --org with --boxName.');
+      exit(1);
+    }
+  }
 
   final cmdParser = ArgParser();
 
   cmdParser.addCommand('datas');
 
   var addCommand = cmdParser.addCommand('add');
-  addCommand.addOption('key', abbr: 'k', help: 'Chave para o novo dado.');
-  addCommand.addOption('value', abbr: 'v', help: 'Valor associado à chave.');
+  addCommand.addOption('key', abbr: 'k', help: 'Key for the new data.');
+  addCommand.addOption('value',
+      abbr: 'v', help: 'Value associated with the key.');
 
   var updateCommand = cmdParser.addCommand('update');
   updateCommand.addOption('key',
-      abbr: 'k', help: 'Chave do dado a ser atualizado.');
+      abbr: 'k', help: 'Key of the data to be updated.');
   updateCommand.addOption('value',
-      abbr: 'v', help: 'Novo valor para a chave especificada.');
+      abbr: 'v', help: 'New value for the specified key.');
 
   var deleteCommand = cmdParser.addCommand('delete');
   deleteCommand.addOption('key',
-      abbr: 'k', help: 'Chave do dado a ser removido.');
+      abbr: 'k', help: 'Key of the data to be removed.');
 
   var backupCommand = cmdParser.addCommand('backup');
   backupCommand.addOption('destination',
-      abbr: 'd', help: 'Localização onde o backup será salvo.');
+      abbr: 'd', help: 'Location where the backup will be saved.');
 
   var restoreCommand = cmdParser.addCommand('restore');
-  restoreCommand.addOption('source',
-      abbr: 's', help: 'Localização do arquivo de backup.');
-
-  String path = results['path'] as String;
+  restoreCommand.addOption('source', abbr: 's', help: 'Backup file location.');
 
   Hive.init(p.dirname(path));
+
+  if (testHiveFileThatIsOnTheAndroidDevice) {
+    print('No implementation yet...');
+    return;
+  }
 
   while (true) {
     stdout.write('h-shell?> ');
     final line = stdin.readLineSync();
 
     if (line == null || line == 'exit') {
-      print('Saindo...');
+      print('Exit...');
       exit(0);
     }
 
@@ -193,7 +86,7 @@ void setup(List<String> args) async {
       if (key != null && value != null) {
         await addData(results['path'] as String, key, value);
       } else {
-        print('Por favor, forneça uma chave e um valor para adicionar.');
+        print('Please provide a key and value to add.');
       }
     } else if (cmdResults.command?.name == 'update') {
       var key = cmdResults.command?['key'];
@@ -202,7 +95,7 @@ void setup(List<String> args) async {
       if (key != null && value != null) {
         await updateData(results['path'] as String, key, value);
       } else {
-        print('Por favor, forneça uma chave e um novo valor para atualizar.');
+        print('Please provide a key and new value to update.');
       }
     } else if (cmdResults.command?.name == 'delete') {
       var key = cmdResults.command?['key'];
@@ -210,7 +103,7 @@ void setup(List<String> args) async {
       if (key != null) {
         await deleteData(results['path'] as String, key);
       } else {
-        print('Por favor, forneça uma chave para remover o dado.');
+        print('Please provide a key to remove the data.');
       }
     } else if (cmdResults.command?.name == 'backup') {
       var destDir = cmdResults.command?['destination'];
@@ -219,7 +112,7 @@ void setup(List<String> args) async {
       var backupLocation = cmdResults.command?['source'];
       await restoreFromBackup(results['path'] as String, backupLocation);
     } else {
-      print('Comando desconhecido.');
+      print('Unknown command.');
     }
   }
 }

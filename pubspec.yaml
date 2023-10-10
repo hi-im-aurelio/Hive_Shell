@@ -1,12 +1,12 @@
 name: hive_shell
-description: A sample command-line application.
+description: A powerful CLI interface to visualize and manage your Hive data without the need for a Flutter app.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/fariosofernando/Hive_Shell
 
 environment:
   sdk: ^3.1.0
 
-# Add regular dependencies here.
+
 dependencies:
   args: ^2.4.2
   hive: ^2.2.3
