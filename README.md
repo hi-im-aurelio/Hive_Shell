@@ -1,4 +1,5 @@
-# Hive Shell Documentation <img height="28px" width="28px" src="icone.jpg"></img>
+<img height="150px" width="150px" src="icone.jpg"></img>
+# Hive Shell Documentation 
 
 
 Hive Shell is a specialized auxiliary development tool tailored for Flutter developers who leverage Hive as their local data storage solution. The tool provides an intuitive command-line interface, enabling developers to interact in real-time with their Hive boxes without the need for additional scripts, enhancing their development flow.
