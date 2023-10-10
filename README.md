@@ -1,14 +1,80 @@
-## Hive Shell
+# Hive Shell Documentation
 
-Hive Shell é uma ferramenta de desenvolvimento auxiliar desenhada especificamente para desenvolvedores Flutter que usam o Hive como solução de armazenamento de dados local. Ela proporciona uma interface de linha de comando intuitiva que permite aos desenvolvedores interagir, em tempo real, com suas caixas do Hive sem a necessidade de criar scripts adicionais ou interromper o fluxo de desenvolvimento.
+Hive Shell is a specialized auxiliary development tool tailored for Flutter developers who leverage Hive as their local data storage solution. The tool provides an intuitive command-line interface, enabling developers to interact in real-time with their Hive boxes without the need for additional scripts, enhancing their development flow.
 
-# Características Principais:
+## Main Features:
 
-- Interface de linha de comando simplificada: Com comandos diretos e intuitivos, os desenvolvedores podem rapidamente consultar, modificar ou analisar os dados armazenados em suas caixas do Hive.
+- **Simplified Command-Line Interface:** With straightforward and intuitive commands, developers can quickly inspect, modify, or analyze the data stored in their Hive boxes.
 
-- Desenvolvimento Ágil: Elimina a necessidade de scripts separados apenas para inspecionar ou modificar caixas, proporcionando um ciclo de desenvolvimento mais rápido e eficiente.
+- **Agile Development:** Eradicates the need for separate scripts to inspect or modify boxes, delivering a faster and more efficient development cycle.
 
-- Foco no Desenvolvedor: Criado tendo em mente os desenvolvedores de aplicativos Flutter, o Hive Shell entende as necessidades e desafios específicos enfrentados ao trabalhar com o Hive, tornando o processo muito mais fluente.
+- **Developer-Centric:** Designed with Flutter app developers in mind, Hive Shell is attuned to the specific challenges and needs faced when working with Hive, streamlining the entire process.
 
-# Uso:
-A ferramenta assume que os desenvolvedores estão cientes das estruturas de dados e nomes das caixas com as quais desejam interagir. Ao usar o Hive Shell, os desenvolvedores podem rapidamente acessar e modificar suas caixas do Hive, facilitando o processo de desenvolvimento e depuração.
+## Usage:
+
+While Hive Shell provides a streamlined interface, it assumes that developers have familiarity with their data structures and the names of the boxes they wish to interact with. This knowledge empowers developers to swiftly access and modify their Hive boxes, simplifying the development and debugging processes.
+
+## Commands:
+
+### General:
+
+- **`--version` or `-v`:** Displays the version of Hive Shell.
+
+```sh
+hshell --version
+```
+
+- **`--help` or `-h`:** Displays the available commands and their descriptions.
+
+```sh
+hshell --help
+```
+
+### Hive Box Interaction:
+
+1. **Add Data**:
+    - **Usage**: 
+        ```sh
+        hshell --path=<path_to_hive_file> add --key=<key_name> --value=<value>
+        ```
+
+2. **Update Data**:
+    - **Usage**:
+        ```sh
+        hshell --path=<path_to_hive_file> update --key=<key_name> --value=<new_value>
+        ```
+
+3. **Delete Data**:
+    - **Usage**:
+        ```sh
+        hshell --path=<path_to_hive_file> delete --key=<key_name>
+        ```
+
+4. **List Data**:
+    - **Usage**:
+        ```sh
+        hshell --path=<path_to_hive_file> datas
+        ```
+
+5. **Backup Hive Box**:
+    - **Usage**:
+        ```sh
+        hshell --path=<path_to_hive_file> backup --destination=<backup_location>
+        ```
+
+6. **Restore from Backup**:
+    - **Usage**:
+        ```sh
+        hshell --path=<path_to_hive_file> restore --source=<backup_file_location>
+        ```
+
+## Specifics:
+
+- The tool uses `adb` (Android Debug Bridge) to interact with devices. Therefore, ensure you have `adb` installed and accessible from your command line.
+
+- Restoring from a backup currently replaces the original box file entirely. Future implementations may allow for a merge approach, where developers can determine how data should merge in the case of conflicts between the backup and the original data.
+
+- While working with the tool, make sure you are providing the correct box path, especially when using operations that modify data, to prevent unintended data loss.
+
+## Conclusion:
+Hive Shell is a powerful utility for developers working with Hive in their Flutter applications. By integrating this tool into their workflow, developers can ensure a smoother and more efficient development process.
