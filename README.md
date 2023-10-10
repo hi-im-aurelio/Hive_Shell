@@ -12,6 +12,9 @@ Hive Shell is a specialized auxiliary development tool tailored for Flutter deve
 
 - **Developer-Centric:** Designed with Flutter app developers in mind, Hive Shell is attuned to the specific challenges and needs faced when working with Hive, streamlining the entire process.
 
+## Tutorial - Youtube
+[![HShell Explained](https://img.youtube.com/vi/dPCWnPAtGRg/0.jpg)](https://youtu.be/dPCWnPAtGRg)
+
 ## Usage:
 
 While Hive Shell provides a streamlined interface, it assumes that developers have familiarity with their data structures and the names of the boxes they wish to interact with. This knowledge empowers developers to swiftly access and modify their Hive boxes, simplifying the development and debugging processes.
