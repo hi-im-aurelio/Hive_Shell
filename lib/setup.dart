@@ -6,10 +6,18 @@ import 'package:path/path.dart' as p;
 import 'source/local_interaction.dart';
 import 'source/device_interaction.dart';
 
+const String VERSION = "1.0.0";
+
 void setup(List<String> args) async {
   bool testHiveFileThatIsOnTheAndroidDevice = false;
 
   final parser = ArgParser();
+
+  parser.addFlag('version',
+      abbr: 'v', negatable: false, help: 'Displays the version of the tool.');
+
+  parser.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Displays this help information.');
 
   parser.addOption('path', abbr: 'p', help: 'Path to the .hive file.');
   parser.addOption('org', abbr: 'o', help: 'App package name (organization).');
@@ -21,6 +29,17 @@ void setup(List<String> args) async {
   String? path = results['path'] as String?;
   String? org = results['org'] as String?;
   String? boxName = results['boxname'] as String?;
+
+  if (results['help'] as bool? ?? false) {
+    print('Usage: hshell [options]\n');
+    print(parser.usage);
+    exit(0);
+  }
+
+  if (results['version'] as bool? ?? false) {
+    print('Hive Shell version $VERSION');
+    exit(0);
+  }
 
   if (path == null) {
     testHiveFileThatIsOnTheAndroidDevice =
